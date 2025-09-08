@@ -1,9 +1,9 @@
 import requests
 from typing import List, Any
 from ..config import CROSSENCODER_URL
-from . import logger
+from ..logger import setup_logging
 
-log = logger.setup_logging()
+log = setup_logging()
 
 def rerank(pairs: List[List[str]], timeout: int = 30) -> List[float]:
     payload = {"pairs": pairs}

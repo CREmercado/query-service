@@ -1,9 +1,9 @@
 import requests
 from typing import Any, Dict, List, Optional
-from . import logger
+from ..logger import setup_logging
 from ..config import OLLAMA_URL, EMBED_MODEL, CHAT_MODEL, EXPAND_MODEL
 
-log = logger.setup_logging()
+log = setup_logging()
 
 def _extract_embedding(resp_json: Any) -> List[float]:
     # If list-wrapped

@@ -1,1 +1,1 @@
-from . import ollama_client, qdrant_client
+from . import crossencoder_client, ollama_client, qdrant_client
