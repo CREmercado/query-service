@@ -1,7 +1,7 @@
 import requests
 from typing import Any, Dict, List, Optional
 from ..logger import setup_logging
-from ..config import OLLAMA_URL, EMBED_MODEL, CHAT_MODEL, EXPAND_MODEL
+from ..config import OLLAMA_URL, OLLAMA_EMBED_MODEL, OLLAMA_CHAT_MODEL, OLLAMA_EXPAND_MODEL
 
 log = setup_logging()
 
@@ -24,14 +24,14 @@ def _extract_embedding(resp_json: Any) -> List[float]:
         return resp_json
     raise ValueError("Unrecognized embedding shape from Ollama response")
 
-def embed(text: str, model: str = EMBED_MODEL, timeout: int = 30) -> List[float]:
+def embed(text: str, model: str = OLLAMA_EMBED_MODEL, timeout: int = 30) -> List[float]:
     url = f"{OLLAMA_URL.rstrip('/')}/api/embed"
     payload = {"model": model, "input": text}
     r = requests.post(url, json=payload, timeout=timeout)
     r.raise_for_status()
     return _extract_embedding(r.json())
 
-def generate_expand(prompt: str, model: str = EXPAND_MODEL, timeout: int = 30) -> str:
+def generate_expand(prompt: str, model: str = OLLAMA_EXPAND_MODEL, timeout: int = 30) -> str:
     url = f"{OLLAMA_URL.rstrip('/')}/api/generate"
     payload = {"model": model, "prompt": prompt, "stream": False}
     r = requests.post(url, json=payload, timeout=timeout)
@@ -42,7 +42,7 @@ def generate_expand(prompt: str, model: str = EXPAND_MODEL, timeout: int = 30) -
         return j.get("response") or j.get("text") or str(j)
     return str(j)
 
-def chat(system_message: str, user_message: str, model: str = CHAT_MODEL, timeout: int = 30) -> Dict[str, Any]:
+def chat(system_message: str, user_message: str, model: str = OLLAMA_CHAT_MODEL, timeout: int = 30) -> Dict[str, Any]:
     url = f"{OLLAMA_URL.rstrip('/')}/api/chat"
     payload = {
         "model": model,
