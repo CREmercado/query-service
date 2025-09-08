@@ -3,14 +3,17 @@ from fastapi import FastAPI, HTTPException, status
 from .logger import setup_logging
 from .schemas import RagQueryRequest, RagQueryResponse, TopDoc, HealthCheck
 from .clients import ollama_client, qdrant_client, crossencoder_client
-from .config import EMBED_MODEL, CHAT_MODEL, EXPAND_MODEL, DEFAULT_TOPK, DEFAULT_TOPN, CONTEXT_SNIPPET_CHARS, OLLAMA_URL, QDRANT_URL, load_prompt
+from .config import OLLAMA_EMBED_MODEL, OLLAMA_CHAT_MODEL, OLLAMA_EXPAND_MODEL, DEFAULT_TOPK, DEFAULT_TOPN, CONTEXT_SNIPPET_CHARS, OLLAMA_URL, QDRANT_URL, QUERY_EXPANSION_TEMPLATE, RAG_SYSTEM_TEMPLATE, RAG_USER_TEMPLATE
+from .clients.ollama_client import ensure_ollama_model
 
 log = setup_logging()
 app = FastAPI(title="RAG Query Service")
 
-QUERY_EXPANSION_TEMPLATE = load_prompt("query_expansion")
-RAG_SYSTEM_TEMPLATE = load_prompt("rag_system")
-RAG_USER_TEMPLATE = load_prompt("rag_user")
+@app.on_event("startup")
+def startup():
+    ensure_ollama_model(OLLAMA_EMBED_MODEL)
+    ensure_ollama_model(OLLAMA_CHAT_MODEL)
+    ensure_ollama_model(OLLAMA_EXPAND_MODEL)
 
 def check_url(url: str):
     try:
@@ -43,7 +46,7 @@ def rag_query(req: RagQueryRequest):
     if use_expansion:
         prompt = QUERY_EXPANSION_TEMPLATE.format(query=req.query)
         try:
-            expanded = ollama_client.generate_expand(prompt, model=EXPAND_MODEL)
+            expanded = ollama_client.generate_expand(prompt, model=OLLAMA_EXPAND_MODEL)
             if isinstance(expanded, dict):
                 expanded = expanded.get("response") or str(expanded)
             expanded = (expanded or "").strip()
@@ -56,7 +59,7 @@ def rag_query(req: RagQueryRequest):
 
     # 4) embed query
     try:
-        vector = ollama_client.embed(final_query, model=EMBED_MODEL)
+        vector = ollama_client.embed(final_query, model=OLLAMA_EMBED_MODEL)
     except Exception as e:
         log.exception("Embedding failed")
         raise HTTPException(status_code=502, detail="Embedding failed")
@@ -119,7 +122,7 @@ def rag_query(req: RagQueryRequest):
     user_msg = RAG_USER_TEMPLATE.format(query=req.query, context=context)
 
     try:
-        chat_resp = ollama_client.chat(system_message=system_msg, user_message=user_msg, model=CHAT_MODEL)
+        chat_resp = ollama_client.chat(system_message=system_msg, user_message=user_msg, model=OLLAMA_CHAT_MODEL)
         # Ollama chat typically returns object with 'response' or 'message' structure; try to extract text:
         if isinstance(chat_resp, dict):
             # try common shapes
@@ -143,7 +146,7 @@ def rag_query(req: RagQueryRequest):
 
     return {
         "answer": answer_text,
-        "model_used": CHAT_MODEL,
+        "model_used": OLLAMA_CHAT_MODEL,
         "topDocs": top_docs_out,
         "context": context
     }

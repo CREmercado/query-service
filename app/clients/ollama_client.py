@@ -55,3 +55,28 @@ def chat(system_message: str, user_message: str, model: str = CHAT_MODEL, timeou
     r = requests.post(url, json=payload, timeout=timeout)
     r.raise_for_status()
     return r.json()
+
+def ensure_ollama_model(model: str, timeout: int = 300):
+    """
+    Ensure Ollama model is available. If not, trigger pull.
+    """
+    # 1) check if model already available
+    try:
+        resp = requests.get(f"{OLLAMA_URL.rstrip('/')}/api/tags", timeout=10)
+        resp.raise_for_status()
+        tags = resp.json().get("models", [])
+        if any(m.get("name") == model for m in tags):
+            log.info(f"Ollama model '{model}' is already available.")
+            return
+    except Exception as e:
+        log.warning(f"Could not list Ollama models: {e}")
+
+    # 2) pull model
+    log.info(f"Pulling Ollama model '{model}' ... this may take several minutes")
+    resp = requests.post(
+        f"{OLLAMA_URL.rstrip('/')}/api/pull",
+        json={"model": model},
+        timeout=timeout,
+    )
+    resp.raise_for_status()
+    log.info(f"Ollama model '{model}' pull triggered successfully")

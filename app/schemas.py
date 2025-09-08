@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from .config import QDRANT_COLLECTION
 
 class RagQueryRequest(BaseModel):
     query: str
     useExpansion: Optional[bool] = False
     topK: Optional[int] = None
     topN: Optional[int] = None
-    collection: Optional[str] = "rag_docs"
+    collection: Optional[str] = QDRANT_COLLECTION
 
 class TopDoc(BaseModel):
     id: str
