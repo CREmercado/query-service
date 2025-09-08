@@ -24,7 +24,7 @@ def check_url(url: str):
 
 @app.get("/health", response_model=HealthCheck, status_code=status.HTTP_200_OK)
 def health():
-    ollama_status = check_url(f"{OLLAMA_URL}/api/embed")
+    ollama_status = check_url(f"{OLLAMA_URL}")
     qdrant_status = check_url(f"{QDRANT_URL}/collections")
     overall = "ok" if all(s == "up" for s in [ollama_status, qdrant_status]) else "degraded"
     return HealthCheck(
