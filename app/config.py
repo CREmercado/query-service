@@ -20,6 +20,12 @@ DEFAULT_TOPN = int(os.getenv("DEFAULT_TOPN", "5"))
 CONTEXT_SNIPPET_CHARS = int(os.getenv("CONTEXT_SNIPPET_CHARS", "1200"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
+# HTTP client settings
+HTTP_RETRIES = int(os.getenv("HTTP_RETRIES", "3"))
+HTTP_BACKOFF_FACTOR = float(os.getenv("HTTP_BACKOFF_FACTOR", "0.5"))
+CONNECT_TIMEOUT = int(os.getenv("CONNECT_TIMEOUT", "5"))
+READ_TIMEOUT = int(os.getenv("READ_TIMEOUT", "300"))
+
 # Load prompts
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
