@@ -113,8 +113,10 @@ def rag_query(req: RagQueryRequest):
     context_blocks = []
     for idx, item in enumerate(top):
         text = (item.get("payload") or {}).get("text", "")
+        filename = (item.get("payload") or {}).get("filename", "")
+        source_file = (item.get("payload") or {}).get("source_file", "")
         snippet = (text[:CONTEXT_SNIPPET_CHARS] + "...") if len(text) > CONTEXT_SNIPPET_CHARS else text
-        context_blocks.append(f"[{idx+1}] ({item['id']},filename:{item['filename']},source_file:{item['source_file']})\n{snippet}")
+        context_blocks.append(f"[{idx+1}] ({item['id']},filename:{filename},source_file:{source_file})\n{snippet}")
     context = "\n\n".join(context_blocks)
 
     # 10) ask Ollama chat using the context
