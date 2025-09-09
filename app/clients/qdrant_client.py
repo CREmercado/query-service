@@ -12,7 +12,7 @@ session, timeout = create_session(
 
 def search_collection(collection: str, vector: list, limit: int = 25, with_payload: bool = True) -> Dict[str, Any]:
     try:
-        url = f"{QDRANT_URL}/collections/{collection}/points/search"
+        url = f"{QDRANT_URL.rstrip('/')}/collections/{collection}/points/search"
         body = {"vector": vector, "limit": limit, "with_payload": with_payload}
         r = session.post(url, json=body, timeout=timeout)
         r.raise_for_status()

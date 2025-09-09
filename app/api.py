@@ -25,7 +25,7 @@ def check_url(url: str):
 @app.get("/health", response_model=HealthCheck, status_code=status.HTTP_200_OK)
 def health():
     ollama_status = check_url(f"{OLLAMA_URL}")
-    qdrant_status = check_url(f"{QDRANT_URL}/collections")
+    qdrant_status = check_url(f"{QDRANT_URL.rstrip('/')}/collections")
     overall = "ok" if all(s == "up" for s in [ollama_status, qdrant_status]) else "degraded"
     return HealthCheck(
         status=overall,
@@ -114,7 +114,7 @@ def rag_query(req: RagQueryRequest):
     for idx, item in enumerate(top):
         text = (item.get("payload") or {}).get("text", "")
         snippet = (text[:CONTEXT_SNIPPET_CHARS] + "...") if len(text) > CONTEXT_SNIPPET_CHARS else text
-        context_blocks.append(f"[{idx+1}] ({item['id']})\n{snippet}")
+        context_blocks.append(f"[{idx+1}] ({item['id']},filename:{item['filename']},source_file:{item['source_file']})\n{snippet}")
     context = "\n\n".join(context_blocks)
 
     # 10) ask Ollama chat using the context

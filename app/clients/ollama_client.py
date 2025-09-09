@@ -30,7 +30,7 @@ def _extract_embedding(resp_json: Any) -> List[float]:
 
 def embed(text: str, model: str = OLLAMA_EMBED_MODEL) -> List[float]:
     try:
-        r = session.post(f"{OLLAMA_URL}/api/embed", json={"model": model, "input": text}, timeout=timeout)
+        r = session.post(f"{OLLAMA_URL.rstrip('/')}/api/embed", json={"model": model, "input": text}, timeout=timeout)
         r.raise_for_status()
         return _extract_embedding(r.json())
     except Exception:
@@ -39,7 +39,7 @@ def embed(text: str, model: str = OLLAMA_EMBED_MODEL) -> List[float]:
 
 def generate_expand(prompt: str, model: str) -> str:
     try:
-        r = session.post(f"{OLLAMA_URL}/api/generate", json={"model": model, "prompt": prompt, "stream": False}, timeout=timeout)
+        r = session.post(f"{OLLAMA_URL.rstrip('/')}/api/generate", json={"model": model, "prompt": prompt, "stream": False}, timeout=timeout)
         r.raise_for_status()
         j = r.json()
         return j.get("response") or j.get("text") or str(j)
@@ -49,7 +49,7 @@ def generate_expand(prompt: str, model: str) -> str:
 
 def chat(system_message: str, user_message: str, model: str) -> Dict[str, Any]:
     try:
-        r = session.post(f"{OLLAMA_URL}/api/chat", json={"model": model, "stream": False,
+        r = session.post(f"{OLLAMA_URL.rstrip('/')}/api/chat", json={"model": model, "stream": False,
             "messages": [{"role": "system", "content": system_message}, {"role": "user", "content": user_message}]}, timeout=timeout)
         r.raise_for_status()
         return r.json()
@@ -64,10 +64,10 @@ def ensure_ollama_model(model: str):
     # 1) check if model already available
     try:
         # 1) Check if model already available
-        resp = session.get(f"{OLLAMA_URL}/api/tags", timeout=timeout)
+        resp = session.get(f"{OLLAMA_URL.rstrip('/')}/api/tags", timeout=timeout)
         resp.raise_for_status()
         tags = resp.json().get("models", [])
-        if any(m.get("name") == model for m in tags):
+        if any(m.get("name") == model or m.get("name").startswith(model) for m in tags):
             log.info(f"Ollama model '{model}' is already available.")
             return
     except Exception as e:
@@ -77,7 +77,7 @@ def ensure_ollama_model(model: str):
     log.info(f"Pulling Ollama model '{model}' ... this may take several minutes")
     try:
         resp = session.post(
-            f"{OLLAMA_URL}/api/pull",
+            f"{OLLAMA_URL.rstrip('/')}/api/pull",
             json={"model": model},
             timeout=timeout
         )
